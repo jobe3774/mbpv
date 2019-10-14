@@ -117,9 +117,9 @@ def main():
 
     myApp = RaspendApplication(args.port, mbpvData)
 
-    myApp.createDataAcquisitionThread(ReadSunnyBoy("SB-3.0"), 1)
-    myApp.createDataAcquisitionThread(ReadSunnyBoy("SB-3.6"), 1)
-
+    for inverter in mbpvData["Inverters"]:
+        myApp.createDataAcquisitionThread(ReadSunnyBoy(inverter), 1)
+    
     myApp.run()
 
     saveConfigData(args.config, mbpvData)

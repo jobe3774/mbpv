@@ -8,6 +8,10 @@
     "expectedYieldKWHperKWP": 0,
     "peakOutputInWP": 0
   },
+  "Inverters": [
+    "SB-3.0",
+    "SB-3.6"
+  ],
   "SB-3.0": {
     "totalYieldLastYear": 0,
     "inverter": {
