@@ -81,10 +81,13 @@ def loadConfigData(configFileName):
             data = json.load(json_file)
     except json.JSONDecodeError as e:
         logging.error("Reading {} failed! Error: {}".format(configFileName, e))
-        pass
+
     except FileNotFoundError as e:
         logging.error("Reading {} failed! Error: {}".format(configFileName, e))
-        pass
+
+    except Exception as e:
+        logging.error("Reading {} failed! Error: {}".format(configFileName, e))
+
     return data
 
 def saveConfigData(configFileName, mbpvData):
@@ -113,6 +116,7 @@ def main():
     mbpvData = loadConfigData(args.config)
 
     if not mbpvData:
+        print("Error loading configuration, see log for details.")
         return
 
     myApp = RaspendApplication(args.port, mbpvData)
