@@ -9,37 +9,39 @@
     "peakOutputInWP": 0
   },
   "Inverters": [
-    "SB-3.0",
-    "SB-3.6"
+    "SB30",
+    "SB36"
   ],
-  "SB-3.0": {
+  "SB30": {
     "totalYieldLastYear": 0,
     "inverter": {
       "name": "SUNNY BOY 3.0",
       "host": "sunny-boy-30",
       "port": 502,
+      "unitId": 1,
       "maxOutput": 3000
     },
     "maxPeakOutputDay": 0,
-    "totalYieldCurrYear": 2602753,
-    "dayYield": 7536,
-    "totalYield": 2602753,
+    "totalYieldCurrYear": 2611030,
+    "dayYield": 3515,
+    "totalYield": 2611030,
     "currentOutput": 0,
     "internalTemperature": 0.0,
     "currentState": "ok"
   },
-  "SB-3.6": {
+  "SB36": {
     "totalYieldLastYear": 0,
     "inverter": {
       "name": "SUNNY BOY 3.6",
       "host": "sunny-boy-36",
       "port": 502,
+      "unitId": 1,
       "maxOutput": 3600
     },
     "maxPeakOutputDay": 0,
-    "totalYieldCurrYear": 2861293,
-    "dayYield": 7379,
-    "totalYield": 2861293,
+    "totalYieldCurrYear": 2870185,
+    "dayYield": 3673,
+    "totalYield": 2870185,
     "currentOutput": 0,
     "internalTemperature": 0.0,
     "currentState": "ok"

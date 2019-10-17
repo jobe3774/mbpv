@@ -20,12 +20,12 @@ from raspend.utils import dataacquisition as DataAcquisition
 from SMA_Inverters import SunnyBoy, SunnyBoyConstants
 
 class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
-    def __init__(self, keyName):
-        self.keyName = keyName
+    def __init__(self, key):
+        self.key = key
         self.today = datetime.today()
 
     def prepare(self):
-        thisDict = self.sharedDict[self.keyName]
+        thisDict = self.sharedDict[self.key]
 
         inverter = thisDict["inverter"]
 
@@ -42,7 +42,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
     def acquireData(self):
         if self.sunnyBoy.readCurrentValues():
             # Reference section of this handler within the sharedDict.
-            thisDict = self.sharedDict[self.keyName]
+            thisDict = self.sharedDict[self.key]
 
             thisDict["dayYield"] = self.sunnyBoy.dayYield
             thisDict["totalYield"] = self.sunnyBoy.totalYield

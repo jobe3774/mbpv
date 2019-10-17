@@ -54,9 +54,10 @@ class SunnyBoy():
         self.mbClient = ModbusClient()
         self.mbClient.host(ipOrHostName)
         self.mbClient.port(portNumber)
+        # Initialize with '1' and determine the correct Id by reading input register 42109 (see 'getSunnyBoyUnitID').
         self.mbClient.unit_id(1)
         self.mbClient.open()
-
+        
         getSunnyBoyUnitID(self.mbClient)
 
         self.dayYield = 0

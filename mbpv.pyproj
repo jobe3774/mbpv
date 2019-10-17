@@ -34,6 +34,7 @@
     <Content Include="licenses\pyModbusTCP" />
     <Content Include="mbpv_config.json" />
     <Content Include="README.md" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="licenses\" />
