@@ -28,6 +28,7 @@
     <Compile Include="SMA_Inverters.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SunMoon.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="LICENSE" />

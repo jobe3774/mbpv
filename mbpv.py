@@ -19,16 +19,18 @@ from raspend.utils import dataacquisition as DataAcquisition
 
 from SMA_Inverters import SunnyBoy, SunnyBoyConstants
 
+from SunMoon import SunMoon
+
 class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
     def __init__(self, key):
         self.key = key
         self.today = datetime.today()
+        self.firstRead = True
 
     def prepare(self):
         thisDict = self.sharedDict[self.key]
 
         inverter = thisDict["inverter"]
-
         self.sunnyBoy = SunnyBoy(inverter["host"], inverter["port"])
 
         thisDict["maxPeakOutputDay"] = 0
@@ -39,11 +41,30 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
         thisDict["internalTemperature"] = 0
         thisDict["currentState"] = SunnyBoyConstants.STATE_AS_STRING[SunnyBoyConstants.STATE_UNKNOWN]
 
-    def acquireData(self):
-        if self.sunnyBoy.readCurrentValues():
-            # Reference section of this handler within the sharedDict.
-            thisDict = self.sharedDict[self.key]
+        theUnit = self.sharedDict["Unit"]
+        self.sun = SunMoon(theUnit["location"]["longitude"], theUnit["location"]["longitude"], self.today)
+        sunRiseSet = self.sun.GetSunRiseSet()
+        self.sunrise = sunRiseSet[0]
+        self.sunset  = sunRiseSet[2]
 
+    def acquireData(self):
+        # Reference section of this handler within the sharedDict.
+        thisDict = self.sharedDict[self.key]
+
+        today = datetime.today()
+        ts = int(today.timestamp())
+
+        # Are we between sunrise and sunset, then we read out the inverter values.
+        if ts > (self.sunrise - 1800) and ts < (self.sunset + 1800):
+            sunAvailable = True
+        else:
+            sunAvailable = False
+
+        if self.firstRead:
+            sunAvailable = True
+            self.firstRead = False
+
+        if sunAvailable and self.sunnyBoy.readCurrentValues():
             thisDict["dayYield"] = self.sunnyBoy.dayYield
             thisDict["totalYield"] = self.sunnyBoy.totalYield
             thisDict["currentOutput"] = self.sunnyBoy.currentOutput
@@ -57,20 +78,24 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
             if self.sunnyBoy.currentOutput > thisDict["maxPeakOutputDay"]:
                 thisDict["maxPeakOutputDay"] = self.sunnyBoy.currentOutput
 
-            # Check if day changed, then reset maxPeakOutputDay.
-            today = datetime.today()
-            if today.weekday() != self.today.weekday():
-                thisDict["maxPeakOutputDay"] = 0
+        # Check if day changed, then reset maxPeakOutputDay.
+        if today.weekday() != self.today.weekday():
+            thisDict["maxPeakOutputDay"] = 0
 
-                # If the year changes too, then we need to save the total yield of last year, 
-                # because the inverter always increments the total yield.
-                if today.year > self.today.year:
-                    thisDict["totalYieldLastYear"] += thisDict["totalYieldCurrYear"]
-                    thisDict["totalYieldCurrYear"] = 0
+            # If the year changes too, then we need to save the total yield of last year, 
+            # because the inverter always increments the total yield.
+            if today.year > self.today.year:
+                thisDict["totalYieldLastYear"] += thisDict["totalYieldCurrYear"]
+                thisDict["totalYieldCurrYear"] = 0
 
-                self.today = today
+            # Update sunrise and -set information.
+            sunRiseSet = self.sun.GetSunRiseSet(today)
+            self.sunrise = sunRiseSet[0]
+            self.sunset  = sunRiseSet[2]
 
-            thisDict["totalYieldCurrYear"] = self.sunnyBoy.totalYield - thisDict["totalYieldLastYear"]
+            self.today = today
+
+        thisDict["totalYieldCurrYear"] = self.sunnyBoy.totalYield - thisDict["totalYieldLastYear"]
 
         return
 
