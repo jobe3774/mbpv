@@ -12,7 +12,7 @@ import json
 import time
 import os
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from raspend.application import RaspendApplication
 from raspend.utils import dataacquisition as DataAcquisition
@@ -26,6 +26,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
         self.key = key
         self.today = datetime.today()
         self.firstRead = True
+        return
 
     def prepare(self):
         thisDict = self.sharedDict[self.key]
@@ -43,9 +44,27 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
 
         theUnit = self.sharedDict["Unit"]
         self.sun = SunMoon(theUnit["location"]["longitude"], theUnit["location"]["longitude"], self.today)
-        sunRiseSet = self.sun.GetSunRiseSet()
+
+        self.setSuntimes()
+        return
+
+    def setSuntimes(self, dt=None):
+        if dt == None:
+            dt = self.today
+
+        if not "Suntimes" in self.sharedDict:
+            theSun = self.sharedDict["Suntimes"] = dict()
+        else:
+            theSun = self.sharedDict["Suntimes"]
+
+        sunRiseSet = self.sun.GetSunRiseSet(dt)
         self.sunrise = sunRiseSet[0]
         self.sunset  = sunRiseSet[2]
+        
+        theSun["today"]     = sunRiseSet
+        theSun["yesterday"] = self.sun.GetSunRiseSet(dt - timedelta(1))
+        theSun["tomorrow"]  = self.sun.GetSunRiseSet(dt + timedelta(1))
+        return
 
     def acquireData(self):
         # Reference section of this handler within the sharedDict.
@@ -55,6 +74,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
         ts = int(today.timestamp())
 
         # Are we between sunrise and sunset, then we read out the inverter values.
+        # May not work for midnight sun regions (https://en.wikipedia.org/wiki/Midnight_sun).
         if ts > (self.sunrise - 1800) and ts < (self.sunset + 1800):
             sunAvailable = True
         else:
@@ -80,6 +100,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
 
         # Check if day changed, then reset maxPeakOutputDay.
         if today.weekday() != self.today.weekday():
+            # TODO: Persist peak values for statistics.
             thisDict["maxPeakOutputDay"] = 0
 
             # If the year changes too, then we need to save the total yield of last year, 
@@ -89,10 +110,9 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
                 thisDict["totalYieldCurrYear"] = 0
 
             # Update sunrise and -set information.
-            sunRiseSet = self.sun.GetSunRiseSet(today)
-            self.sunrise = sunRiseSet[0]
-            self.sunset  = sunRiseSet[2]
+            self.setSuntimes(today)
 
+            # Save the new day as today.
             self.today = today
 
         thisDict["totalYieldCurrYear"] = self.sunnyBoy.totalYield - thisDict["totalYieldLastYear"]
@@ -150,6 +170,9 @@ def main():
         myApp.createDataAcquisitionThread(ReadSunnyBoy(inverter), 1)
     
     myApp.run()
+
+    # Remove items from dict which not need to be stored.
+    del(mbpvData["Suntimes"])
 
     saveConfigData(args.config, mbpvData)
 
