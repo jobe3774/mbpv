@@ -52,7 +52,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
         if dt == None:
             dt = self.today
 
-        if not "Suntimes" in self.sharedDict:
+        if "Suntimes" not in self.sharedDict:
             theSun = self.sharedDict["Suntimes"] = dict()
         else:
             theSun = self.sharedDict["Suntimes"]
