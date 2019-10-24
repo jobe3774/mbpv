@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 
 from raspend.application import RaspendApplication
 from raspend.utils import dataacquisition as DataAcquisition
+from raspend.utils import publishing as Publishing
 
 from SMA_Inverters import SunnyBoy, SunnyBoyConstants
 
@@ -98,7 +99,6 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
 
         # Check if day changed, then reset maxPeakOutputDay.
         if today.weekday() != self.today.weekday():
-            # TODO: Persist peak values for statistics.
             thisDict["maxPeakOutputDay"] = 0
 
             # If the year changes too, then we need to save the total yield of last year, 
@@ -112,6 +112,58 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
 
             # Save the new day as today.
             self.today = today
+
+        return
+
+class PublishInverterPeaks(Publishing.PublishDataHandler):
+    def __init__(self, fileName, scheduledHour, scheduledMinute):
+        self.fileName = fileName
+        self.scheduledHour = scheduledHour
+        self.scheduledMinute = scheduledMinute
+        self.today = datetime.today()
+        self.savedData = False
+
+    def prepare(self):
+        # Create a csv file to store the peak values.
+        if not os.path.isfile(self.fileName):
+            try:
+                csvFile = open(self.fileName, "wt")
+                inverters = self.sharedDict["Inverters"]
+                header = "Date,"
+                for inverter in inverters:
+                    header += inverter + ","
+                header = header[:-1] + "\n"
+                csvFile.write(header)
+                csvFile.close()
+            except IOError as e:
+                logging.error("Unable to open csv file '{}'! Error: {}".format(self.fileName, e))
+
+    def saveInverterPeaks(self, timetuple):
+        strLine = "{}-{:02d}-{:02d},".format(timetuple.tm_year, timetuple.tm_mon, timetuple.tm_mday)
+        inverters = self.sharedDict["Inverters"]
+        for inverter in inverters:
+            strLine += str(self.sharedDict[inverter]["maxPeakOutputDay"]) + ","
+        strLine = strLine[:-1] + "\n"
+        try:
+            csvFile = open(self.fileName, "at")
+            csvFile.write(strLine)
+            csvFile.close()
+        except IOError as e:
+            logging.error("Unable to open csv file '{}'! Error: {}".format(self.fileName, e))
+        return
+
+    def publishData(self):
+        # Data acquisition resets the peak values at midnight.
+        tNow = time.localtime()
+
+        if not self.savedData and tNow.tm_hour == self.scheduledHour and tNow.tm_hour == self.scheduledMinute:
+            self.saveInverterPeaks(tNow)
+            self.savedData = True
+
+        today = datetime.today()
+        if today.weekday() != self.today.weekday():
+            self.today = today
+            self.savedData = False
 
         return
 
@@ -148,6 +200,7 @@ def main():
     cmdLineParser = argparse.ArgumentParser(prog="mbpv", usage="%(prog)s [options]")
     cmdLineParser.add_argument("--port", help="The port the server should listen on", type=int, required=True)
     cmdLineParser.add_argument("--config", help="Path to the config file", type=str, required=True)
+    cmdLineParser.add_argument("--peaklog", help="Path to the log file for inverter peak values", type=str, required=True)
 
     try: 
         args = cmdLineParser.parse_args()
@@ -165,6 +218,8 @@ def main():
     for inverter in mbpvData["Inverters"]:
         myApp.createDataAcquisitionThread(ReadSunnyBoy(inverter), 1)
     
+    myApp.createPublishDataThread(PublishInverterPeaks(args.peaklog, 23, 40), 30)
+
     myApp.run()
 
     # Remove items from dict which not need to be stored.
