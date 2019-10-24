@@ -31,7 +31,11 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
     def prepare(self):
         thisDict = self.sharedDict[self.key]
 
-        thisDict["maxPeakOutputDay"] = 0
+        if "maxPeakOutputDay" not in thisDict:
+            thisDict["maxPeakOutputDay"] = 0
+        if "totalYieldLastYear" not in thisDict:
+            thisDict["totalYieldLastYear"] = 0
+
         thisDict["totalYieldCurrYear"] = 0
         thisDict["dayYield"] = 0
         thisDict["totalYield"] = 0
