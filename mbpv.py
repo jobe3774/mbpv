@@ -138,8 +138,9 @@ class PublishInverterPeaks(Publishing.PublishDataHandler):
             except IOError as e:
                 logging.error("Unable to open csv file '{}'! Error: {}".format(self.fileName, e))
 
-    def saveInverterPeaks(self, timetuple):
-        strLine = "{}-{:02d}-{:02d},".format(timetuple.tm_year, timetuple.tm_mon, timetuple.tm_mday)
+    def saveInverterPeaks(self):
+        tNow = time.localtime()
+        strLine = "{}-{:02d}-{:02d},".format(tNow.tm_year, tNow.tm_mon, tNow.tm_mday)
         inverters = self.sharedDict["Inverters"]
         for inverter in inverters:
             strLine += str(self.sharedDict[inverter]["maxPeakOutputDay"]) + ","
@@ -153,7 +154,7 @@ class PublishInverterPeaks(Publishing.PublishDataHandler):
         return
 
     def publishData(self):
-        self.saveInverterPeaks(tNow)
+        self.saveInverterPeaks()
         return
 
 def loadConfigData(configFileName):
@@ -209,7 +210,7 @@ def main():
 
     # Data acquisition resets the peak values at midnight.
     myApp.createScheduledPublishDataThread(PublishInverterPeaks(args.peaklog), 
-                                           Publishing.ScheduledStartTime(23, 0, 0),
+                                           Publishing.ScheduledStartTime(23, 15, 0),
                                            Publishing.RepetitionType.DAILY)
 
     myApp.run()
