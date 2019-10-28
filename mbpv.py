@@ -210,7 +210,7 @@ def main():
 
     # Data acquisition resets the peak values at midnight.
     myApp.createScheduledPublishDataThread(PublishInverterPeaks(args.peaklog), 
-                                           Publishing.ScheduledStartTime(23, 15, 0),
+                                           Publishing.ScheduledStartTime(23, 30, 0),
                                            Publishing.RepetitionType.DAILY)
 
     myApp.run()
