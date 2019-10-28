@@ -120,12 +120,8 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
         return
 
 class PublishInverterPeaks(Publishing.PublishDataHandler):
-    def __init__(self, fileName, scheduledHour, scheduledMinute):
+    def __init__(self, fileName):
         self.fileName = fileName
-        self.scheduledHour = scheduledHour
-        self.scheduledMinute = scheduledMinute
-        self.today = datetime.today()
-        self.savedData = False
 
     def prepare(self):
         # Create a csv file to store the peak values.
@@ -157,18 +153,7 @@ class PublishInverterPeaks(Publishing.PublishDataHandler):
         return
 
     def publishData(self):
-        # Data acquisition resets the peak values at midnight.
-        tNow = time.localtime()
-
-        if not self.savedData and tNow.tm_hour == self.scheduledHour and tNow.tm_min == self.scheduledMinute:
-            self.saveInverterPeaks(tNow)
-            self.savedData = True
-
-        today = datetime.today()
-        if today.weekday() != self.today.weekday():
-            self.today = today
-            self.savedData = False
-
+        self.saveInverterPeaks(tNow)
         return
 
 def loadConfigData(configFileName):
@@ -221,8 +206,11 @@ def main():
 
     for inverter in mbpvData["Inverters"]:
         myApp.createDataAcquisitionThread(ReadSunnyBoy(inverter), 1)
-    
-    myApp.createPublishDataThread(PublishInverterPeaks(args.peaklog, 23, 50), 30)
+
+    # Data acquisition resets the peak values at midnight.
+    myApp.createScheduledPublishDataThread(PublishInverterPeaks(args.peaklog), 
+                                           Publishing.ScheduledStartTime(23, 0, 0),
+                                           Publishing.RepetitionType.DAILY)
 
     myApp.run()
 
