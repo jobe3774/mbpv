@@ -206,7 +206,7 @@ def main():
         myApp.createWorkerThread(ReadSunnyBoy(inverter), 1)
 
     # Data acquisition resets the peak values at midnight.
-    myApp.createScheduledWorkerThread(PublishInverterPeaks(args.peaklog), time(21, 15), None, ScheduleRepetitionType.DAILY)
+    myApp.createScheduledWorkerThread(PublishInverterPeaks(args.peaklog), time(23, 0), None, ScheduleRepetitionType.DAILY)
 
     myApp.run()
 
