@@ -9,20 +9,17 @@
 
 import logging
 import json
-import time
 import os
 import argparse
-from datetime import datetime, timedelta
+from datetime import time, datetime, timedelta
 
-from raspend.application import RaspendApplication
-from raspend.utils import dataacquisition as DataAcquisition
-from raspend.utils import publishing as Publishing
+from raspend import RaspendApplication, ThreadHandlerBase, ScheduleRepetitionType
 
 from SMA_Inverters import SunnyBoy, SunnyBoyConstants
 
 from SunMoon import SunMoon
 
-class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
+class ReadSunnyBoy(ThreadHandlerBase):
     def __init__(self, key):
         self.key = key
         self.today = datetime.today()
@@ -89,7 +86,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
             thisDict["totalYieldCurrYear"] = self.sunnyBoy.totalYield - thisDict["totalYieldLastYear"]
         return
 
-    def acquireData(self):
+    def invoke(self):
         # Reference section of this handler within the sharedDict.
         thisDict = self.sharedDict[self.key]
 
@@ -119,7 +116,7 @@ class ReadSunnyBoy(DataAcquisition.DataAcquisitionHandler):
 
         return
 
-class PublishInverterPeaks(Publishing.PublishDataHandler):
+class PublishInverterPeaks(ThreadHandlerBase):
     def __init__(self, fileName):
         self.fileName = fileName
 
@@ -139,8 +136,8 @@ class PublishInverterPeaks(Publishing.PublishDataHandler):
                 logging.error("Unable to open csv file '{}'! Error: {}".format(self.fileName, e))
 
     def saveInverterPeaks(self):
-        tNow = time.localtime()
-        strLine = "{}-{:02d}-{:02d},".format(tNow.tm_year, tNow.tm_mon, tNow.tm_mday)
+        tNow = datetime.now()
+        strLine = "{}-{:02d}-{:02d},".format(tNow.year, tNow.month, tNow.day)
         inverters = self.sharedDict["Inverters"]
         for inverter in inverters:
             strLine += str(self.sharedDict[inverter]["maxPeakOutputDay"]) + ","
@@ -153,7 +150,7 @@ class PublishInverterPeaks(Publishing.PublishDataHandler):
             logging.error("Unable to open csv file '{}'! Error: {}".format(self.fileName, e))
         return
 
-    def publishData(self):
+    def invoke(self):
         self.saveInverterPeaks()
         return
 
@@ -184,7 +181,7 @@ def saveConfigData(configFileName, mbpvData):
 def main():
     logging.basicConfig(filename='mbpv.log', level=logging.INFO)
 
-    logging.info("Starting at {} (PID={})".format(time.asctime(), os.getpid()))
+    logging.info("Starting at {} (PID={})".format(datetime.now(), os.getpid()))
 
     # Check commandline arguments.
     cmdLineParser = argparse.ArgumentParser(prog="mbpv", usage="%(prog)s [options]")
@@ -206,12 +203,10 @@ def main():
     myApp = RaspendApplication(args.port, mbpvData)
 
     for inverter in mbpvData["Inverters"]:
-        myApp.createDataAcquisitionThread(ReadSunnyBoy(inverter), 1)
+        myApp.createWorkerThread(ReadSunnyBoy(inverter), 1)
 
     # Data acquisition resets the peak values at midnight.
-    myApp.createScheduledPublishDataThread(PublishInverterPeaks(args.peaklog), 
-                                           Publishing.ScheduledStartTime(23, 30, 0),
-                                           Publishing.RepetitionType.DAILY)
+    myApp.createScheduledWorkerThread(PublishInverterPeaks(args.peaklog), time(21, 15), None, ScheduleRepetitionType.DAILY)
 
     myApp.run()
 
