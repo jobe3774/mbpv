@@ -215,7 +215,7 @@ def main():
 
     saveConfigData(args.config, mbpvData)
 
-    logging.info("Stopped at {} (PID={})".format(time.asctime(), os.getpid()))
+    logging.info("Stopped at {} (PID={})".format(datetime.now(), os.getpid()))
 
 if __name__ == "__main__":
     main()
