@@ -11,7 +11,7 @@ import logging
 import json
 import os
 import argparse
-from datetime import time, datetime, timedelta
+from datetime import datetime, timedelta, time
 
 from raspend import RaspendApplication, ThreadHandlerBase, ScheduleRepetitionType
 
@@ -22,7 +22,7 @@ from SunMoon import SunMoon
 class ReadSunnyBoy(ThreadHandlerBase):
     def __init__(self, key):
         self.key = key
-        self.today = datetime.today()
+        self.today = datetime.now()
         return
 
     def prepare(self):
@@ -45,7 +45,7 @@ class ReadSunnyBoy(ThreadHandlerBase):
         self.getCurrentValues(thisDict)
 
         theUnit = self.sharedDict["Unit"]
-        self.sun = SunMoon(theUnit["location"]["longitude"], theUnit["location"]["longitude"], self.today)
+        self.sun = SunMoon(theUnit["location"]["longitude"], theUnit["location"]["latitude"], self.today)
         self.setSuntimes()
 
         return
@@ -60,6 +60,7 @@ class ReadSunnyBoy(ThreadHandlerBase):
             theSun = self.sharedDict["Suntimes"]
 
         sunRiseSet = self.sun.GetSunRiseSet(dt)
+
         self.sunrise = sunRiseSet[0]
         self.sunset  = sunRiseSet[2]
         
@@ -90,8 +91,8 @@ class ReadSunnyBoy(ThreadHandlerBase):
         # Reference section of this handler within the sharedDict.
         thisDict = self.sharedDict[self.key]
 
-        today = datetime.today()
-        ts = int(today.timestamp())
+        today = datetime.now()
+        ts = int(datetime.utcnow().timestamp())
 
         # Are we between sunrise and sunset, then we read out the inverter values.
         # May not work for midnight sun regions (https://en.wikipedia.org/wiki/Midnight_sun).

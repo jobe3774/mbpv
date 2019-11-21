@@ -13,7 +13,7 @@
 
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from math import sin, acos, cos, pi, radians, degrees, atan2, asin, tan, ceil, floor, sqrt, fabs, nan, isnan
 import argparse
 
@@ -99,16 +99,10 @@ class SunMoon:
     def setDatetime(self, dt=None):
         if dt == None:
             utc = datetime.utcnow()
-            dt = datetime.now()
-            diff = dt - utc
-            Zone = int(diff.seconds / 3600)
         else:
             utc = datetime.utcfromtimestamp(dt.timestamp())
-            diff = dt - utc
-            Zone = int(diff.seconds / 3600)
-
-        self.dt = dt
-        self.Zone = Zone
+        self.dt = utc
+        self.Zone = 0
 
     # x*x
     def sqr(self, x):
@@ -147,7 +141,7 @@ class SunMoon:
     def round10(self, x):
         return (round(10.0 * x) / 10.0)
 
-    def HHMM(self, hh):
+    def HHMM(self, hh, asString=True):
         # 21.06.19 JB: added test for NaN
         if (hh == 0 or hh == '' or isnan(hh)):
             return(self.empty)
@@ -158,6 +152,10 @@ class SunMoon:
             h += 1
             m -= 60.0
         m = int(round(m))
+
+        if not asString:
+            return h,m
+
         if (h < 10):
             string += "0"
         string += str(h) + ":"
@@ -166,7 +164,7 @@ class SunMoon:
         string += str(m)
         return (string + " = " + str(self.round1000(hh)))
 
-    def HHMMSS(self, hh):
+    def HHMMSS(self, hh, asString=True):
         # 21.06.19 JB: added test for NaN
         if (hh == 0 or isnan(hh)):
             return(empty)
@@ -182,6 +180,10 @@ class SunMoon:
             h += 1
             m -= 60
         s = int(round(s))
+
+        if not asString:
+            return h,m,s
+
         if (h < 10):
             string += "0"
         string += str(h) + ":"
@@ -194,10 +196,8 @@ class SunMoon:
         return (string + " = " + str(self.round10000(hh)))
 
     def ToTimestamp(self, hours, dt):
-        htemp = self.HHMM(hours)
-        tstemp = time.strptime(dt.strftime("%d.%m.%Y ") + self.HHMM(hours)[0:5], "%d.%m.%Y %H:%M")
-        ts = int(time.mktime(tstemp))
-        return (ts)
+        hour, minute = self.HHMM(hours, False)
+        return datetime(dt.year, dt.month, dt.day, hour, minute, 0, 0, tzinfo=timezone.utc).timestamp()
 
     def Sign(self, lon):
         signs = ("Widder", "Stier", "Zwillinge", "Krebs", "Löwe", "Jungfrau", "Waage", "Skorpion", "Schütze", "Steinbock", "Wassermann", "Fische")
@@ -770,7 +770,12 @@ class SunMoon:
         SunRiseSet = self.SunRise(JD0, self.deltaT, lon, lat, self.Zone, 0)
 
         #return self.HHMM(SunRiseSet.rise)[0:5], self.HHMM(SunRiseSet.transit)[0:5], self.HHMM(SunRiseSet.set)[0:5]
-        return self.ToTimestamp(SunRiseSet.rise, self.dt), self.ToTimestamp(SunRiseSet.transit, self.dt), self.ToTimestamp(SunRiseSet.set, self.dt)
+
+        sunRise = self.ToTimestamp(SunRiseSet.rise, self.dt)
+        sunNoon = self.ToTimestamp(SunRiseSet.transit, self.dt)
+        sunSet = self.ToTimestamp(SunRiseSet.set, self.dt)
+
+        return sunRise, sunNoon, sunSet
         
 # END OF CLASS SunMoon
 
