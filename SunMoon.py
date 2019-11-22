@@ -100,7 +100,8 @@ class SunMoon:
         if dt == None:
             utc = datetime.utcnow()
         else:
-            utc = datetime.utcfromtimestamp(dt.timestamp())
+            utc = datetime(dt.year, dt.month, dt.day, 12, 0, 0, 0, tzinfo=timezone.utc)
+
         self.dt = utc
         self.Zone = 0
 

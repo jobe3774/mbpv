@@ -11,18 +11,17 @@ import logging
 import json
 import os
 import argparse
-from datetime import datetime, timedelta, time
-
+from tzlocal import get_localzone
+from datetime import datetime, timedelta, time, timezone
 from raspend import RaspendApplication, ThreadHandlerBase, ScheduleRepetitionType
-
 from SMA_Inverters import SunnyBoy, SunnyBoyConstants
-
 from SunMoon import SunMoon
 
 class ReadSunnyBoy(ThreadHandlerBase):
-    def __init__(self, key):
+    def __init__(self, key, localTimeZone):
         self.key = key
-        self.today = datetime.now()
+        self.localTimeZone = localTimeZone
+        self.today = datetime.now(localTimeZone)
         return
 
     def prepare(self):
@@ -61,8 +60,8 @@ class ReadSunnyBoy(ThreadHandlerBase):
 
         sunRiseSet = self.sun.GetSunRiseSet(dt)
 
-        self.sunrise = sunRiseSet[0]
-        self.sunset  = sunRiseSet[2]
+        self.sunrise = datetime.fromtimestamp(sunRiseSet[0], self.localTimeZone).timestamp()
+        self.sunset  = datetime.fromtimestamp(sunRiseSet[2], self.localTimeZone).timestamp()
         
         theSun["today"] = sunRiseSet
         theSun["yesterday"] = self.sun.GetSunRiseSet(dt - timedelta(1))
@@ -91,12 +90,13 @@ class ReadSunnyBoy(ThreadHandlerBase):
         # Reference section of this handler within the sharedDict.
         thisDict = self.sharedDict[self.key]
 
-        today = datetime.now()
-        ts = int(datetime.utcnow().timestamp())
+        today = datetime.now(self.localTimeZone)
+        ts = int(today.timestamp())
 
         # Are we between sunrise and sunset, then we read out the inverter values.
         # May not work for midnight sun regions (https://en.wikipedia.org/wiki/Midnight_sun).
         if ts > (self.sunrise - 1800) and ts < (self.sunset + 1800):
+            print ("getting current values")
             self.getCurrentValues(thisDict)
 
         # Check if day changed, then reset maxPeakOutputDay.
@@ -180,9 +180,11 @@ def saveConfigData(configFileName, mbpvData):
         logging.error("Writing {} failed! Error: {}".format(configFileName, e))
 
 def main():
+    localTimeZone = get_localzone()
+
     logging.basicConfig(filename='mbpv.log', level=logging.INFO)
 
-    logging.info("Starting at {} (PID={})".format(datetime.now(), os.getpid()))
+    logging.info("Starting at {} (PID={})".format(datetime.now(localTimeZone), os.getpid()))
 
     # Check commandline arguments.
     cmdLineParser = argparse.ArgumentParser(prog="mbpv", usage="%(prog)s [options]")
@@ -204,7 +206,7 @@ def main():
     myApp = RaspendApplication(args.port, mbpvData)
 
     for inverter in mbpvData["Inverters"]:
-        myApp.createWorkerThread(ReadSunnyBoy(inverter), 1)
+        myApp.createWorkerThread(ReadSunnyBoy(inverter, localTimeZone), 1)
 
     # Data acquisition resets the peak values at midnight.
     myApp.createScheduledWorkerThread(PublishInverterPeaks(args.peaklog), time(23, 0), None, ScheduleRepetitionType.DAILY)
@@ -216,7 +218,7 @@ def main():
 
     saveConfigData(args.config, mbpvData)
 
-    logging.info("Stopped at {} (PID={})".format(datetime.now(), os.getpid()))
+    logging.info("Stopped at {} (PID={})".format(datetime.now(localTimeZone), os.getpid()))
 
 if __name__ == "__main__":
     main()
