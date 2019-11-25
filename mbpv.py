@@ -11,6 +11,7 @@ import logging
 import json
 import os
 import argparse
+import requests
 from tzlocal import get_localzone
 from datetime import datetime, timedelta, time, timezone
 from raspend import RaspendApplication, ThreadHandlerBase, ScheduleRepetitionType
@@ -117,7 +118,7 @@ class ReadSunnyBoy(ThreadHandlerBase):
 
         return
 
-class PublishInverterPeaks(ThreadHandlerBase):
+class PublishInverterPeaksToFile(ThreadHandlerBase):
     def __init__(self, fileName):
         self.fileName = fileName
 
@@ -153,6 +154,35 @@ class PublishInverterPeaks(ThreadHandlerBase):
 
     def invoke(self):
         self.saveInverterPeaks()
+        return
+
+class PublishPVUnitValuesToPVOutput(ThreadHandlerBase):
+    def __init__(self, apiKey, systemId):
+        self.apiKey = apiKey
+        self.systemId = systemId
+
+    def prepare(self):
+        pass
+
+    def invoke(self):
+        url = "https://pvoutput.org/service/r2/addoutput.jsp"
+
+        totalOutputDay = 0
+        maxPeakOutputDay = 0
+        for inverter in self.sharedDict["Inverters"]:
+            totalOutputDay += self.sharedDict[inverter]["dayYield"]
+            maxPeakOutputDay += self.sharedDict[inverter]["maxPeakOutputDay"]
+
+        headers = {"X-Pvoutput-Apikey" : self.apiKey,
+                   "X-Pvoutput-SystemId" : self.systemId}
+        payload = "?d={}&g={}&pp={}".format(datetime.now().strftime("%Y%m%d"), totalOutputDay, maxPeakOutputDay)
+
+        response = requests.get(url+payload, headers=headers)
+
+        # TODO:
+        # Check response, because for some reason it could happen, that the request fails.
+        # If so, we need to queue requests and retry to send later.
+        
         return
 
 def loadConfigData(configFileName):
@@ -209,9 +239,21 @@ def main():
         myApp.createWorkerThread(ReadSunnyBoy(inverter, localTimeZone), 1)
 
     # Data acquisition resets the peak values at midnight.
-    myApp.createScheduledWorkerThread(PublishInverterPeaks(args.peaklog), time(23, 0), None, ScheduleRepetitionType.DAILY)
+    myApp.createScheduledWorkerThread(PublishInverterPeaksToFile(args.peaklog), time(23, 0), None, ScheduleRepetitionType.DAILY)
+
+    PVOutput = None
+    if "PVOutput.org" in mbpvData:
+        PVOutput = mbpvData["PVOutput.org"]
+        del(mbpvData["PVOutput.org"])
+        myApp.createScheduledWorkerThread(PublishPVUnitValuesToPVOutput(PVOutput["apiKey"], PVOutput["systemId"]), 
+                                          time(23, 30), 
+                                          None, 
+                                          ScheduleRepetitionType.DAILY)
 
     myApp.run()
+
+    if PVOutput:
+        mbpvData["PVOutput.org"] = PVOutput
 
     # Remove items from dict which not need to be stored.
     del(mbpvData["Suntimes"])

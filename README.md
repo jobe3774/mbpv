@@ -1,5 +1,5 @@
 # mbpv - modbus photovoltaic (unit reader)
-A  [raspend](https://github.com/jobe3774/raspend) based application for reading out current values of my pv-unit via Modbus.
+A  [raspend](https://github.com/jobe3774/raspend) based application for reading out current values of my PV-units inverters via Modbus-TCP. The values then are exposed as JSON via HTTP, so they can be displayed in a user interface like shown below.
 
 For Modbus communication it uses [pyModbusTCP](https://github.com/sourceperl/pyModbusTCP).
 

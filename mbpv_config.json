@@ -8,6 +8,10 @@
     "expectedYieldKWHperKWP": 0,
     "peakOutputInWP": 0
   },
+  "PVOutput.org": {
+    "apiKey": "secret-api-key",
+    "systemId":  4711
+  },
   "Inverters": [
     "SB30",
     "SB36"
