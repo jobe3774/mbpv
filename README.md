@@ -77,7 +77,7 @@ inverter.port| Modbus-TCP port (default: 502)
 inverter.unitId| Modbus unit id
 inverter.maxOutput| maximum output of the inverter
 
-When creating a first configuration all keys but the inverter key can be omitted since mbpv creates them for you. 
+When creating a first configuration file, all keys but the inverter key can be omitted since mbpv creates them for you. 
 
 If you added your PV system to [pvoutput.org](https://www.pvoutput.org/), you can add a respective node containing your system id and your API key.
 
@@ -88,6 +88,18 @@ If you added your PV system to [pvoutput.org](https://www.pvoutput.org/), you ca
   }
 ```
 
-Here you can see a screenshot of my frontend to display the data collected by mbpv.
+## Usage
+
+Start **mbpv** as follows:
+```
+$ python3 mbpv.py --port=8080 --config=./mbpv_config.json --peaklog=./peaks.csv
+```
+Then open your favourite browser and type:
+```
+http://localhost:8080/data
+```
+You get a JSON string as response containing all the values mentioned above. 
+
+Here you can see a screenshot of the frontend I wrote for displaying the data collected by mbpv.
 
 ![pv_display.png](./images/pv_display.png)
