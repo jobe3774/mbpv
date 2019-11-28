@@ -177,12 +177,12 @@ class PublishPVUnitValuesToPVOutput(ThreadHandlerBase):
                    "X-Pvoutput-SystemId" : self.systemId}
         payload = "?d={}&g={}&pp={}".format(datetime.now().strftime("%Y%m%d"), totalOutputDay, maxPeakOutputDay)
 
-        response = requests.get(url+payload, headers=headers)
+        try:
+            response = requests.get(url+payload, headers=headers)
+            response.raise_for_status()
+        except Exception as e:
+            logging.error("Fetching '{}' failed! Error: {}".format(url+payload, e))
 
-        # TODO:
-        # Check response, because for some reason it could happen, that the request fails.
-        # If so, we need to queue requests and retry to send later.
-        
         return
 
 def loadConfigData(configFileName):
