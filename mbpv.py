@@ -97,7 +97,6 @@ class ReadSunnyBoy(ThreadHandlerBase):
         # Are we between sunrise and sunset, then we read out the inverter values.
         # May not work for midnight sun regions (https://en.wikipedia.org/wiki/Midnight_sun).
         if ts > (self.sunrise - 1800) and ts < (self.sunset + 1800):
-            print ("getting current values")
             self.getCurrentValues(thisDict)
 
         # Check if day changed, then reset maxPeakOutputDay.
