@@ -22,9 +22,9 @@
       "maxOutput": 3000
     },
     "maxPeakOutputDay": 200,
-    "totalYieldCurrYear": 2764046,
-    "dayYield": 1149,
-    "totalYield": 2764046,
+    "totalYieldCurrYear": 2766210,
+    "dayYield": 2164,
+    "totalYield": 2766210,
     "currentOutput": 0,
     "internalTemperature": 0.0,
     "currentState": "ok"
@@ -39,9 +39,9 @@
       "maxOutput": 3600
     },
     "maxPeakOutputDay": 220,
-    "totalYieldCurrYear": 3031840,
-    "dayYield": 1261,
-    "totalYield": 3031840,
+    "totalYieldCurrYear": 3034181,
+    "dayYield": 2341,
+    "totalYield": 3034181,
     "currentOutput": 0,
     "internalTemperature": 0.0,
     "currentState": "ok"

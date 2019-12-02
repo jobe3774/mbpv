@@ -17,11 +17,10 @@ from collections import namedtuple
 
 from pyModbusTCP.client import ModbusClient
 
-ModbusRegister = namedtuple("ModbusRegister", "number sizeBytes")
+ModbusRegister = namedtuple("ModbusRegister", "Address SequenceSize")
 
 class SunnyBoyRegisters():
     def __init__(self, *args, **kwargs):
-        self.UNIT_ID = ModbusRegister(42019, 4)
         self.DAY_YIELD = ModbusRegister(30517, 4)
         self.TOTAL_YIELD = ModbusRegister(30529, 2)
         self.CURRENT_OUTPUT = ModbusRegister(30775, 2)
@@ -30,6 +29,8 @@ class SunnyBoyRegisters():
 
 class SunnyBoyConstants():
     NAN_VALUE = 0x80000000
+    # SMA Modbus registers are 16 bits wide.
+    MBREG_BITWIDTH = 16
     STATE_OK = 307
     STATE_OFF = 303
     STATE_WARNING = 455
@@ -67,17 +68,17 @@ class SunnyBoy():
         self.internalTemperature = 0
         self.currentState = SunnyBoyConstants.STATE_UNKNOWN
         
-    def shiftValue(self, regVal, sizeBytes):
+    def shiftValue(self, regVal, sequenceSize):
         if regVal is None:
             return 0
-        if len(regVal) != sizeBytes:
+        if len(regVal) != sequenceSize:
             return 0
 
         val = 0
-        for i in range(0, sizeBytes, 1):
+        for i in range(0, sequenceSize, 1):
             val |= regVal[i]
-            if i < sizeBytes-1:
-                val <<= 16
+            if i < sequenceSize-1:
+                val <<= SunnyBoyConstants.MBREG_BITWIDTH
 
         if val == SunnyBoyConstants.NAN_VALUE:
             val = 0
@@ -88,16 +89,16 @@ class SunnyBoy():
             print ("Unable to connect to {}:{}".format(self.mbClient.host(), self.mbClient.port()))
             return False
 
-        regVal_DayYield = self.mbClient.read_input_registers(self.registers.DAY_YIELD.number, self.registers.DAY_YIELD.sizeBytes)
-        regVal_TotalYield = self.mbClient.read_input_registers(self.registers.TOTAL_YIELD.number, self.registers.TOTAL_YIELD.sizeBytes)
-        regVal_CurrentOutput = self.mbClient.read_input_registers(self.registers.CURRENT_OUTPUT.number, self.registers.CURRENT_OUTPUT.sizeBytes)
-        regVal_InternalTemperature = self.mbClient.read_input_registers(self.registers.INTERNAL_TEMPERATURE.number, self.registers.INTERNAL_TEMPERATURE.sizeBytes)
-        regVal_CurrentState = self.mbClient.read_input_registers(self.registers.CURRENT_STATE.number, self.registers.CURRENT_STATE.sizeBytes)
+        regVal_DayYield = self.mbClient.read_input_registers(self.registers.DAY_YIELD.Address, self.registers.DAY_YIELD.SequenceSize)
+        regVal_TotalYield = self.mbClient.read_input_registers(self.registers.TOTAL_YIELD.Address, self.registers.TOTAL_YIELD.SequenceSize)
+        regVal_CurrentOutput = self.mbClient.read_input_registers(self.registers.CURRENT_OUTPUT.Address, self.registers.CURRENT_OUTPUT.SequenceSize)
+        regVal_InternalTemperature = self.mbClient.read_input_registers(self.registers.INTERNAL_TEMPERATURE.Address, self.registers.INTERNAL_TEMPERATURE.SequenceSize)
+        regVal_CurrentState = self.mbClient.read_input_registers(self.registers.CURRENT_STATE.Address, self.registers.CURRENT_STATE.SequenceSize)
 
-        self.dayYield = self.shiftValue(regVal_DayYield, self.registers.DAY_YIELD.sizeBytes)
-        self.totalYield = self.shiftValue(regVal_TotalYield, self.registers.TOTAL_YIELD.sizeBytes)
-        self.currentOutput = self.shiftValue(regVal_CurrentOutput, self.registers.CURRENT_OUTPUT.sizeBytes)
-        self.internalTemperature = self.shiftValue(regVal_InternalTemperature, self.registers.INTERNAL_TEMPERATURE.sizeBytes) / 10
-        self.currentState = self.shiftValue(regVal_CurrentState, self.registers.CURRENT_STATE.sizeBytes)
+        self.dayYield = self.shiftValue(regVal_DayYield, self.registers.DAY_YIELD.SequenceSize)
+        self.totalYield = self.shiftValue(regVal_TotalYield, self.registers.TOTAL_YIELD.SequenceSize)
+        self.currentOutput = self.shiftValue(regVal_CurrentOutput, self.registers.CURRENT_OUTPUT.SequenceSize)
+        self.internalTemperature = self.shiftValue(regVal_InternalTemperature, self.registers.INTERNAL_TEMPERATURE.SequenceSize) * 0.1
+        self.currentState = self.shiftValue(regVal_CurrentState, self.registers.CURRENT_STATE.SequenceSize)
 
         return True
