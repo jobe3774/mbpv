@@ -32,6 +32,8 @@ class ReadSunnyBoy(ThreadHandlerBase):
             thisDict["maxPeakOutputDay"] = 0
         if "totalYieldLastYear" not in thisDict:
             thisDict["totalYieldLastYear"] = 0
+        if "maxPeakTime" not in thisDict:
+            thisDict["maxPeakTime"] = "--:--"
 
         thisDict["totalYieldCurrYear"] = 0
         thisDict["dayYield"] = 0
@@ -42,7 +44,8 @@ class ReadSunnyBoy(ThreadHandlerBase):
 
         inverter = thisDict["inverter"]
         self.sunnyBoy = SunnyBoy(inverter["host"], inverter["port"])
-        self.getCurrentValues(thisDict)
+
+        self.getCurrentValues(thisDict, datetime.now(self.localTimeZone).time())
 
         theUnit = self.sharedDict["Unit"]
         self.sun = SunMoon(theUnit["location"]["longitude"], theUnit["location"]["latitude"], self.today)
@@ -69,7 +72,7 @@ class ReadSunnyBoy(ThreadHandlerBase):
         theSun["tomorrow"] = self.sun.GetSunRiseSet(dt + timedelta(1))
         return
 
-    def getCurrentValues(self, thisDict):
+    def getCurrentValues(self, thisDict, currentTime):
         if self.sunnyBoy.readCurrentValues():
             thisDict["dayYield"] = self.sunnyBoy.dayYield
             thisDict["totalYield"] = self.sunnyBoy.totalYield
@@ -83,6 +86,7 @@ class ReadSunnyBoy(ThreadHandlerBase):
             # Determine the maximum peak output value.
             if self.sunnyBoy.currentOutput > thisDict["maxPeakOutputDay"]:
                 thisDict["maxPeakOutputDay"] = self.sunnyBoy.currentOutput
+                thisDict["maxPeakTime"] = currentTime.strftime("%H:%M")
 
             thisDict["totalYieldCurrYear"] = self.sunnyBoy.totalYield - thisDict["totalYieldLastYear"]
         return
@@ -97,11 +101,12 @@ class ReadSunnyBoy(ThreadHandlerBase):
         # Are we between sunrise and sunset, then we read out the inverter values.
         # May not work for midnight sun regions (https://en.wikipedia.org/wiki/Midnight_sun).
         if ts > (self.sunrise - 1800) and ts < (self.sunset + 1800):
-            self.getCurrentValues(thisDict)
+            self.getCurrentValues(thisDict, today.time())
 
         # Check if day changed, then reset maxPeakOutputDay.
         if today.weekday() != self.today.weekday():
             thisDict["maxPeakOutputDay"] = 0
+            thisDict["maxPeakTime"] = "--:--"
 
             # If the year changes too, then we need to save the total yield of last year, 
             # because the inverter always increments the total yield.
