@@ -58,7 +58,8 @@ Each inverter's node has the following structure:
     "totalYield": 0,
     "currentOutput": 0,
     "internalTemperature": 0.0,
-    "currentState": "ok"
+    "currentState": "ok",
+	"maxPeakTime" : "HH:MM"
   },
   ...
   "sunnyboy2": {
@@ -76,6 +77,7 @@ maxPeakOutputDay|the peak output of the day
 internalTemperature|the inverter's internal temperature
 currentState|the inverter's current operating state
 inverter| subnode containing relevant information regarding the inverter's Modbus configuration
+maxPeakTime|the time of inverter's peak
 
 When creating a first configuration file, all keys but the inverter key can be omitted since **mbpv** creates them for you. 
 
@@ -105,7 +107,7 @@ If you have added your PV system to [pvoutput.org](https://www.pvoutput.org/), y
 ``` json
   "PVOutput.org": {
     "apiKey": "secret-api-key",
-    "systemId":  0123456789
+    "systemId":  1234567890
   }
 ```
 
@@ -163,7 +165,8 @@ You get a JSON response, which contains most of the above values, extended by a 
     "totalYield": 2763865,
     "currentOutput": 155,
     "internalTemperature": 34.5,
-    "currentState": "ok"
+    "currentState": "ok",
+	"maxPeakTime": "14:23"
   },
   "sunnyboy2": {
     "totalYieldLastYear": 0,
@@ -180,7 +183,8 @@ You get a JSON response, which contains most of the above values, extended by a 
     "totalYield": 3031643,
     "currentOutput": 169,
     "internalTemperature": 35.8,
-    "currentState": "ok"
+    "currentState": "ok",
+	"maxPeakTime": "14:23"
   },
   "Suntimes": {
     "today": [
