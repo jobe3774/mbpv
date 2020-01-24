@@ -59,7 +59,7 @@ Each inverter's node has the following structure:
     "currentOutput": 0,
     "internalTemperature": 0.0,
     "currentState": "ok",
-	"maxPeakTime" : "HH:MM"
+    "maxPeakTime" : "HH:MM"
   },
   ...
   "sunnyboy2": {
@@ -166,7 +166,7 @@ You get a JSON response, which contains most of the above values, extended by a 
     "currentOutput": 155,
     "internalTemperature": 34.5,
     "currentState": "ok",
-	"maxPeakTime": "14:23"
+    "maxPeakTime": "14:23"
   },
   "sunnyboy2": {
     "totalYieldLastYear": 0,
@@ -184,7 +184,7 @@ You get a JSON response, which contains most of the above values, extended by a 
     "currentOutput": 169,
     "internalTemperature": 35.8,
     "currentState": "ok",
-	"maxPeakTime": "14:23"
+    "maxPeakTime": "14:23"
   },
   "Suntimes": {
     "today": [
