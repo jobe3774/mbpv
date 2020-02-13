@@ -13,38 +13,38 @@
     "SB36"
   ],
   "SB30": {
-    "totalYieldLastYear": 0,
     "inverter": {
-      "name": "SUNNY BOY 3.0",
+      "maxOutput": 3000,
       "host": "sunny-boy-30",
       "port": 502,
-      "unitId": 1,
-      "maxOutput": 3000
+      "name": "SUNNY BOY 3.0"
     },
-    "maxPeakOutputDay": 200,
-    "totalYieldCurrYear": 2766210,
-    "dayYield": 2164,
-    "totalYield": 2766210,
-    "currentOutput": 0,
+    "currentState": "ok",
     "internalTemperature": 0.0,
-    "currentState": "ok"
+    "dayYield": 4717,
+    "currentOutput": 0,
+    "totalYieldLastYear": 2822876,
+    "totalYield": 2954072,
+    "maxPeakTime": "13:21",
+    "totalYieldCurrYear": 131196,
+    "maxPeakOutputDay": 2630
   },
   "SB36": {
-    "totalYieldLastYear": 0,
     "inverter": {
-      "name": "SUNNY BOY 3.6",
+      "maxOutput": 3600,
       "host": "sunny-boy-36",
       "port": 502,
-      "unitId": 1,
-      "maxOutput": 3600
+      "name": "SUNNY BOY 3.6"
     },
-    "maxPeakOutputDay": 220,
-    "totalYieldCurrYear": 3034181,
-    "dayYield": 2341,
-    "totalYield": 3034181,
-    "currentOutput": 0,
+    "currentState": "ok",
     "internalTemperature": 0.0,
-    "currentState": "ok"
+    "dayYield": 5219,
+    "currentOutput": 0,
+    "totalYieldLastYear": 3093473,
+    "totalYield": 3231736,
+    "maxPeakTime": "13:21",
+    "totalYieldCurrYear": 138263,
+    "maxPeakOutputDay": 2892
   },
   "PVOutput.org": {
     "apiKey": "secret-api-key",

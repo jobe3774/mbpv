@@ -173,13 +173,17 @@ class PublishPVUnitValuesToPVOutput(ThreadHandlerBase):
 
         totalOutputDay = 0
         maxPeakOutputDay = 0
+        maxPeakTime = "--:--"
         for inverter in self.sharedDict["Inverters"]:
             totalOutputDay += self.sharedDict[inverter]["dayYield"]
             maxPeakOutputDay += self.sharedDict[inverter]["maxPeakOutputDay"]
+            # I would assume that both inverters have the same peak time, but if not, then we take the later one.
+            if maxPeakTime < self.sharedDict[inverter]["maxPeakTime"]:
+                maxPeakTime = self.sharedDict[inverter]["maxPeakTime"]
 
         headers = {"X-Pvoutput-Apikey" : self.apiKey,
                    "X-Pvoutput-SystemId" : self.systemId}
-        payload = "?d={}&g={}&pp={}".format(datetime.now().strftime("%Y%m%d"), totalOutputDay, maxPeakOutputDay)
+        payload = "?d={}&g={}&pp={}&pt={}".format(datetime.now().strftime("%Y%m%d"), totalOutputDay, maxPeakOutputDay, maxPeakTime)
 
         try:
             response = requests.get(url+payload, headers=headers)
@@ -224,7 +228,7 @@ def main():
     cmdLineParser = argparse.ArgumentParser(prog="mbpv", usage="%(prog)s [options]")
     cmdLineParser.add_argument("--port", help="The port the server should listen on", type=int, required=True)
     cmdLineParser.add_argument("--config", help="Path to the config file", type=str, required=True)
-    cmdLineParser.add_argument("--peaklog", help="Path to the log file for inverter peak values", type=str, required=True)
+    cmdLineParser.add_argument("--peaklog", help="Path to the log file for inverter peak values", type=str, required=False)
 
     try: 
         args = cmdLineParser.parse_args()
