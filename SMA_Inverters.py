@@ -53,10 +53,10 @@ class SunnyBoy():
     def __init__(self, ipOrHostName, portNumber):
         self.registers = SunnyBoyRegisters()
         self.mbClient = ModbusClient()
-        self.mbClient.host(ipOrHostName)
-        self.mbClient.port(portNumber)
+        self.mbClient.host = ipOrHostName
+        self.mbClient.port = portNumber
         # Initialize with '1' and determine the correct Id by reading input register 42109 (see 'getSunnyBoyUnitID').
-        self.mbClient.unit_id(1)
+        self.mbClient.unit_id = 1
         self.mbClient.open()
         
         getSunnyBoyUnitID(self.mbClient)

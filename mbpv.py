@@ -193,6 +193,26 @@ class PublishPVUnitValuesToPVOutput(ThreadHandlerBase):
 
         return
 
+class PersistConfigFile(ThreadHandlerBase):
+    def __init__(self, configFileName, mbpvData, PVOutput):
+        self.configFileName = configFileName
+        self.mbpvData = mbpvData
+        self.PVOutput = PVOutput
+
+    def prepare(self):
+        pass
+
+    def invoke(self):
+        mbpvData = self.mbpvData.copy()
+
+        del(mbpvData["Suntimes"])
+        
+        if PVOutput:
+            mbpvData["PVOutput.org"] = self.PVOutput
+
+        saveConfigData(self.configFileName, mbpvData)
+        return
+
 def loadConfigData(configFileName):
     data = None
     try:
@@ -257,6 +277,8 @@ def main():
                                           time(23, 30), 
                                           None, 
                                           ScheduleRepetitionType.DAILY)
+
+    myApp.createScheduledWorkerThread(PersistConfigFile(args.config, mbpvData, PVOutput), time(23, 55), None, ScheduleRepetitionType.DAILY);
 
     myApp.run()
 

@@ -12,9 +12,11 @@
     <Name>mbpv</Name>
     <RootNamespace>mbpv</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--port=8082 --config=./mbpv_config.json --peaklog=./peaks.csv</CommandLineArguments>
+    <CommandLineArguments>--port=8082 --config=./jobepv.json --peaklog=./peaks.csv</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
+    <InterpreterId>
+    </InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

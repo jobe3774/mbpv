@@ -1,4 +1,4 @@
-requests==2.22.0
+requests==2.31.0
 tzlocal==2.0.0
 raspend==2.0.3
 win_inet_pton==1.1.0
