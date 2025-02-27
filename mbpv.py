@@ -205,7 +205,8 @@ class PersistConfigFile(ThreadHandlerBase):
     def invoke(self):
         mbpvData = self.mbpvData.copy()
 
-        del(mbpvData["Suntimes"])
+        if "Suntimes" in mbpvData:
+            del(mbpvData["Suntimes"])
         
         if self.PVOutput:
             mbpvData["PVOutput.org"] = self.PVOutput
@@ -286,7 +287,8 @@ def main():
         mbpvData["PVOutput.org"] = PVOutput
 
     # Remove items from dict which not need to be stored.
-    del(mbpvData["Suntimes"])
+    if "Suntimes" in mbpvData:
+        del(mbpvData["Suntimes"])
 
     saveConfigData(args.config, mbpvData)
 
