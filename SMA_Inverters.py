@@ -44,10 +44,10 @@ class SunnyBoyConstants():
 
 def getSunnyBoyUnitID(client):
     # read inverters unit_id
-    if client.is_open():
+    if client.is_open:
         unit_id_regs = client.read_input_registers(42109, 4)
         if unit_id_regs:
-            client.unit_id(unit_id_regs[3])
+            client.unit_id = unit_id_regs[3]
 
 class SunnyBoy():
     def __init__(self, ipOrHostName, portNumber):
@@ -85,7 +85,7 @@ class SunnyBoy():
         return val
 
     def readCurrentValues(self):
-        if not self.mbClient.is_open() and not self.mbClient.open():
+        if not self.mbClient.is_open and not self.mbClient.open():
             print ("Unable to connect to {}:{}".format(self.mbClient.host(), self.mbClient.port()))
             return False
 

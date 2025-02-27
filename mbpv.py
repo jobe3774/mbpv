@@ -207,7 +207,7 @@ class PersistConfigFile(ThreadHandlerBase):
 
         del(mbpvData["Suntimes"])
         
-        if PVOutput:
+        if self.PVOutput:
             mbpvData["PVOutput.org"] = self.PVOutput
 
         saveConfigData(self.configFileName, mbpvData)
